@@ -2,6 +2,14 @@
 
 Mini Hermes owns the personal digital-twin role, task coordination and durable memory. MacBook is the local work entry point, collector and execution node. Keep each node's model, credentials, native memory and original session files independent. Windows execution remains optional.
 
+## Human-readable memory in Obsidian
+
+Obsidian personal notes and daily work reports form the user-editable plaintext memory layer. Agent logs retain source evidence; Obsidian retains readable knowledge, decisions and reports; Mini stores recall-oriented summaries with references to the original notes. User corrections to an original note are grounds to revise its Mini summary, rather than overwrite the original with a stale summary.
+
+Use the existing vault, directory conventions and locally installed Obsidian CLI workflow. Verify a write by reading it back before claiming archival success, then save a concise summary and the vault-relative reference on Mini. A completed vault write and a completed Mini update are separate acknowledgements. Daily work reports contain evidence-backed business work; personal learning and tool maintenance belong in their appropriate notes.
+
+This is an agent workflow over the existing local vault. Whole-vault background ingestion, automatic propagation of every manual note edit, remote vault access and automatic cross-device write-back are not implemented by the memory service. Mini must have an actual access path or assistance from the vault-owning device before reading or writing a note. No recurring report job is implied.
+
 This is a separate service from the historical synthetic-only P1/P2 pipeline:
 
 1. MacBook Relay reads approved work directories from dsh, Codex, Claude Code and Hermes logs. It excludes system/developer messages, reasoning, raw tool arguments and tool outputs. Tool names and user/assistant work text remain eligible. Oversized records leave an explicit omission marker.

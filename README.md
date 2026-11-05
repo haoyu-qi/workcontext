@@ -4,6 +4,7 @@ Agent work context, capability-based execution and controlled skill distribution
 
 - **MacBook:** local work entry point and Agent log collection, including dsh, Codex, Claude Code and Hermes.
 - **Mini:** personal digital-twin main role, durable long-term memory, context/query services, task coordination and execution-result archive.
+- **Readable memory:** Obsidian personal notes and daily reports retain editable originals; Mini summaries point back to the notes through the explicit agent workflow.
 - **Execution:** choose a compatible registered node by OS, workspace, capability, revision, liveness and load. Windows-specific work requires Windows; other work can run on either Mac.
 - **Skills:** checksum manifests, platform selection, local-edit protection, backup and rollback. Node SOUL, models, credentials and private memory remain independent.
 
