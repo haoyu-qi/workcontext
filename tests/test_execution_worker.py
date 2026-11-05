@@ -28,7 +28,7 @@ class Worker(unittest.TestCase):
                     except Exception as error:last['error']=repr(error);return False
                 try:wait(ready)
                 except AssertionError:
-                    log.flush();log.seek(0);self.fail('Server readiness failed: '+repr(last)+'; exit='+repr(child.poll())+'; log='+log.read().decode('utf-8','replace'))
+                    log.flush();log.seek(0);self.fail('Server readiness failed: '+repr(last)+'; exit='+repr(child.poll())+'; log='+log.read().decode('utf-8','replace')+'; database_exists='+repr((root/'jobs.sqlite').exists()))
                 body={'project':'demo','revision':rev,'capability':'check','required_os':'any','idempotency_key':'once'}
                 job=http(base+'/submit',op,body);self.assertTrue(step(wc));value=http(base+'/job?id='+job['id'],op)
                 self.assertEqual(value['state'],'succeeded');self.assertIn('real subprocess',value['result']['stdout']);self.assertEqual(counter.read_text(),'1')

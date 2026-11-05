@@ -1,6 +1,7 @@
 """Polling worker: local command registry, immutable project revision, durable result outbox."""
 import argparse,hashlib,json,os,platform,signal,sqlite3,subprocess,tempfile,threading,time
 from pathlib import Path
+from contextlib import closing
 from .service import http,load,canonical
 
 def host_os():return {'Darwin':'macos','Windows':'windows','Linux':'linux'}.get(platform.system(),'unknown')
@@ -81,7 +82,7 @@ def step(config):
     c=load(config);report={'os':host_os(),'capabilities':list(c['capabilities']),'projects':{k:revision(p) for k,p in c['projects'].items()}}
     post(c,'/heartbeat',report)
     # A finished result is retried before asking for new work.
-    with journal(c) as db:
+    with closing(journal(c)) as db, db:
         rows=db.execute("SELECT * FROM attempts WHERE phase='result_pending'").fetchall()
         for row in rows:
             payload=json.loads(row['result']);ack=post(c,'/result',payload)
