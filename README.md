@@ -22,6 +22,11 @@ Python 3.9+; no third-party Python dependency is required by the core. Compresse
 
 See [operations](public-docs/OPERATIONS.md), [long-term memory](public-docs/LONG-TERM-MEMORY.md), [architecture and limitations](public-docs/ARCHITECTURE.md), and the [example role profiles](config-examples/hermes).
 
+The browser console supports real-memory search, source details and owner-created
+one-time device pairing. A revocable session reconnects on refresh; upstream
+credentials remain on the service host. See the
+[browser console setup](public-docs/OPERATIONS.md#browser-console).
+
 The console and execution services have been exercised with physical Mac and Windows workers. This repository contains portable service code and sanitized examples, **not** live keys, private SOUL snapshots, personal Agent histories or machine databases. Service manifests require local private configuration. Earlier P1/P2 ingestion remains synthetic-only. The independent long-term memory service provides scoped log relay, durable sources, explicit stable notes and a native Hermes provider; source archiving and fact validation remain separate steps.
 
 ## Build and test

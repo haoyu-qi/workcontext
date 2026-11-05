@@ -1,0 +1,10 @@
+{
+  "port": 43150,
+  "origins": ["http://127.0.0.1:43150", "http://localhost:43150"],
+  "memory_url": "http://127.0.0.1:43170",
+  "auth": {
+    "database": "/absolute/private/web-sessions.sqlite",
+    "session_seconds": 28800,
+    "credentials": {"memory": "/absolute/private/memory-reader-token.json"}
+  }
+}

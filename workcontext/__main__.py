@@ -13,8 +13,23 @@ def main():
     logs=sub.add_parser('logs');logs.add_argument('action',choices=['inventory','collect','watch']);logs.add_argument('--config',required=True);logs.add_argument('--include-content',action='store_true');logs.add_argument('--max-records',type=int);logs.add_argument('--interval',type=int,default=30)
     skill=sub.add_parser('skills');skill.add_argument('action',choices=['manifest','plan','apply','rollback']);skill.add_argument('--source');skill.add_argument('--target');skill.add_argument('--manifest');skill.add_argument('--names',nargs='+');skill.add_argument('--platform',default={'Darwin':'macos','Windows':'windows','Linux':'linux'}.get(platform.system(),'linux'));skill.add_argument('--record')
     sub.add_parser('selfcheck')
+    credentials=sub.add_parser('credentials');credentials.add_argument('action',choices=['export','pair','revoke-sessions']);credentials.add_argument('--config');credentials.add_argument('--output');credentials.add_argument('--memory-token-file');credentials.add_argument('--context-token-file')
     a=p.parse_args()
-    if a.command=='serve':
+    if a.command=='credentials':
+        from .credentials import export
+        from .service import Rejected
+        try:
+            if a.action=='export':
+                if not a.output:p.error('--output is required')
+                output(export(a.output,a.memory_token_file,a.context_token_file))
+            else:
+                if not a.config:p.error('--config is required')
+                from .web_auth import Sessions
+                sessions=Sessions(a.config)
+                output(sessions.create_pair() if a.action=='pair' else sessions.revoke_all())
+        except Rejected as error:p.error(error.reason)
+        except (ValueError,OSError,TypeError,AttributeError):p.error('Credential operation failed. Check configuration, source files, expiry and output path; existing exports are never overwritten.')
+    elif a.command=='serve':
         if a.service=='receiver':from .service import run;run(a.config)
         elif a.service=='context':from .context_service import serve;serve(a.config)
         elif a.service=='execution':from .execution import serve;serve(a.config)
