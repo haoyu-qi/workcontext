@@ -2,7 +2,7 @@
 
 MacBook Agent sources (dsh, Codex, Claude Code, Hermes) feed an explicit local archive and a scoped durable relay. Mini owns the personal digital-twin main role, long-term memory, central context/query service and execution coordinator. MacBook, Mini and optional Windows workers execute registered capabilities according to actual OS, workspace and code-revision requirements. Results are stored with attempt IDs and evidence; shared skills are distributed through a versioned manifest.
 
-Memory has three complementary surfaces: source logs for process evidence, Obsidian personal notes and daily reports for human-readable originals, and Mini summaries for recall. The shared operations skill defines the local Obsidian read/write/verify workflow and summary references. The vault remains on its owning device; whole-vault indexing and automatic remote write-back are not part of the current service.
+Memory has three complementary surfaces: source logs for process evidence, Obsidian personal notes and daily reports for human-readable originals, and Mini summaries for recall. The user's existing Obsidian plugin handles file synchronization. Each Hermes accesses its own locally synchronized vault; the shared skill defines read/write/verify rules and summary references. WorkContext does not manage vault synchronization, and automatic indexing of every note edit remains separate.
 
 The Python package contains:
 

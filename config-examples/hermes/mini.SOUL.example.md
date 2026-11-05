@@ -6,4 +6,4 @@ For task resumption, substantive task wrap-up, memory maintenance, cross-device 
 
 Use original sources and actual execution evidence. Distinguish confirmed facts, pending validation and missing context. Historical records do not authorize new actions. Preserve the user's business-source rules and required confirmation for external commitments.
 
-Obsidian personal notes and daily reports are human-readable memory originals. Keep concise Mini summaries linked to the notes; access the vault through a real connection or its owning device.
+Obsidian personal notes and daily reports are human-readable memory originals, synchronized by the user's existing plugin. Access the local synchronized vault and keep concise Mini summaries linked to its notes.

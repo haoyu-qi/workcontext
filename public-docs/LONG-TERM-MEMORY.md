@@ -8,7 +8,7 @@ Obsidian personal notes and daily work reports form the user-editable plaintext 
 
 Use the existing vault, directory conventions and locally installed Obsidian CLI workflow. Verify a write by reading it back before claiming archival success, then save a concise summary and the vault-relative reference on Mini. A completed vault write and a completed Mini update are separate acknowledgements. Daily work reports contain evidence-backed business work; personal learning and tool maintenance belong in their appropriate notes.
 
-This is an agent workflow over the existing local vault. Whole-vault background ingestion, automatic propagation of every manual note edit, remote vault access and automatic cross-device write-back are not implemented by the memory service. Mini must have an actual access path or assistance from the vault-owning device before reading or writing a note. No recurring report job is implied.
+The user's existing Obsidian plugin handles vault-file synchronization between devices. WorkContext does not provide or change that sync layer. Hermes on each device uses its locally synchronized vault through its actual local path and CLI. Updating Mini's recall summaries is a separate operation; automatic whole-vault indexing of every note edit and recurring report jobs are not implied by file synchronization.
 
 This is a separate service from the historical synthetic-only P1/P2 pipeline:
 
