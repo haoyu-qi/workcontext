@@ -18,9 +18,17 @@ class Worker(unittest.TestCase):
             c={'database':str(root/'jobs.sqlite'),'bind':'127.0.0.1','port':server_port,'nodes':{'test':{**policy,'os':host_os(),'token_hash':digest(node_token)}},'operators':{'op':{**policy,'token_hash':digest(op)}},'readers':{}}
             cfg=root/'server.json';cfg.write_text(json.dumps(c));token=root/'token.json';token.write_text(json.dumps({'token':node_token}));base='http://127.0.0.1:'+str(server_port)
             worker={'node':'test','url':base,'token_file':str(token),'journal':str(root/'journal.sqlite'),'projects':{'demo':project},'capabilities':{'check':{'project':'demo','argv':[sys.executable,str(script)],'timeout':5}}};wc=root/'worker.json';wc.write_text(json.dumps(worker))
-            child=subprocess.Popen([sys.executable,'-m','workcontext.execution','--config',str(cfg)],cwd=ROOT)
+            log=(root/'server.log').open('w+b')
+            child=subprocess.Popen([sys.executable,'-m','workcontext.execution','--config',str(cfg)],cwd=ROOT,stdout=log,stderr=log)
             try:
-                wait(lambda:http(base+'/health','')['service']=='workcontext-execution')
+                last={}
+                def ready():
+                    try:
+                        value=http(base+'/health','');last['response']=value;return value.get('service')=='workcontext-execution'
+                    except Exception as error:last['error']=repr(error);return False
+                try:wait(ready)
+                except AssertionError:
+                    log.flush();log.seek(0);self.fail('Server readiness failed: '+repr(last)+'; exit='+repr(child.poll())+'; log='+log.read().decode('utf-8','replace'))
                 body={'project':'demo','revision':rev,'capability':'check','required_os':'any','idempotency_key':'once'}
                 job=http(base+'/submit',op,body);self.assertTrue(step(wc));value=http(base+'/job?id='+job['id'],op)
                 self.assertEqual(value['state'],'succeeded');self.assertIn('real subprocess',value['result']['stdout']);self.assertEqual(counter.read_text(),'1')
@@ -33,5 +41,5 @@ class Worker(unittest.TestCase):
                 script.write_text('import time\ntime.sleep(30)\n');manifest.write_text(json.dumps({'files':{'check.py':hashlib.sha256(script.read_bytes()).hexdigest()}}));worker['capabilities']['check']['timeout']=.2;wc.write_text(json.dumps(worker))
                 j=http(base+'/submit',op,{**body,'revision':revision(project),'idempotency_key':'timeout'})
                 self.assertTrue(step(wc));self.assertEqual(http(base+'/job?id='+j['id'],op)['state'],'timed_out')
-            finally:child.terminate();child.wait(timeout=10)
+            finally:child.terminate();child.wait(timeout=10);log.close()
 if __name__=='__main__':unittest.main(verbosity=2)

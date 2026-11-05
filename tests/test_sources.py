@@ -1,5 +1,6 @@
 import json,shutil,sqlite3,subprocess,tempfile,unittest
 from pathlib import Path
+from contextlib import closing
 from workcontext.source_logs import collect,inventory
 class Sources(unittest.TestCase):
  def setUp(self):
@@ -9,7 +10,7 @@ class Sources(unittest.TestCase):
   p=self.logs/'session.jsonl';p.write_text(json.dumps({'type':'session','id':'s1'})+'\n'+json.dumps({'type':'tool','tool_name':'read','authorization':'Bearer '+'s'*30,'reasoning':'private reasoning'})+'\n')
   self.assertEqual(collect(self.c)['inserted'],2);self.assertEqual(collect(self.c)['unchanged_files'],1)
   r=collect(self.c,True);self.assertEqual(r['updated'],2)
-  with sqlite3.connect(self.c['database']) as db:
+  with closing(sqlite3.connect(self.c['database'])) as db, db:
    rows=[json.loads(x[0]) for x in db.execute('SELECT body FROM source_records')]
   self.assertNotIn('authorization',rows[1]['record']);self.assertNotIn('reasoning',rows[1]['record'])
   with p.open('a') as f:f.write(json.dumps({'type':'completed'})+'\n')
@@ -22,7 +23,7 @@ class Sources(unittest.TestCase):
   compressed.write_bytes(b'invalid');self.assertTrue(collect(self.c)['errors'])
  def test_hermes_readonly_sqlite(self):
   p=self.root/'state.db'
-  with sqlite3.connect(p) as db:
+  with closing(sqlite3.connect(p)) as db, db:
    db.execute('CREATE TABLE messages (id INTEGER,session_id TEXT,role TEXT,content TEXT)');db.execute('INSERT INTO messages VALUES (1,?,?,?)',('s','assistant','hello'))
   before=p.read_bytes();self.c['sources']=[{'agent':'hermes','path':str(p),'format':'hermes-sqlite'}]
   self.assertEqual(collect(self.c,True)['inserted'],1);self.assertEqual(before,p.read_bytes())
