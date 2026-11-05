@@ -3,7 +3,8 @@
 Agent work context, capability-based execution and controlled skill distribution across a MacBook, a Mac mini, and optional Windows workers.
 
 - **MacBook:** local work entry point and Agent log collection, including dsh, Codex, Claude Code and Hermes.
-- **Mini:** context/query services, task coordination and execution-result archive.
+- **Mini:** personal digital-twin main role, durable long-term memory, context/query services, task coordination and execution-result archive.
+- **Readable memory:** Obsidian personal notes and daily reports retain editable originals; Mini summaries point back to the notes through the explicit agent workflow.
 - **Execution:** choose a compatible registered node by OS, workspace, capability, revision, liveness and load. Windows-specific work requires Windows; other work can run on either Mac.
 - **Skills:** checksum manifests, platform selection, local-edit protection, backup and rollback. Node SOUL, models, credentials and private memory remain independent.
 
@@ -19,9 +20,14 @@ workcontext skills plan --source skills --manifest skills/manifest.json --target
 
 Python 3.9+; no third-party Python dependency is required by the core. Compressed logs need a Zstandard decoder; unsupported sources are reported.
 
-See [operations](public-docs/OPERATIONS.md), [architecture and limitations](public-docs/ARCHITECTURE.md), and the [example role profiles](config-examples/hermes).
+See [operations](public-docs/OPERATIONS.md), [long-term memory](public-docs/LONG-TERM-MEMORY.md), [architecture and limitations](public-docs/ARCHITECTURE.md), and the [example role profiles](config-examples/hermes).
 
-The console and execution services have been exercised with physical Mac and Windows workers. This repository contains portable service code and sanitized examples, **not** live keys, private SOUL snapshots, personal Agent histories or machine databases. Service manifests require local private configuration. Earlier P1/P2 ingestion remains synthetic-only; local real-source collection does not imply central memory ingestion or automatic long-term consolidation has been deployed.
+The browser console supports real-memory search, source details and owner-created
+one-time device pairing. A revocable session reconnects on refresh; upstream
+credentials remain on the service host. See the
+[browser console setup](public-docs/OPERATIONS.md#browser-console).
+
+The console and execution services have been exercised with physical Mac and Windows workers. This repository contains portable service code and sanitized examples, **not** live keys, private SOUL snapshots, personal Agent histories or machine databases. Service manifests require local private configuration. Earlier P1/P2 ingestion remains synthetic-only. The independent long-term memory service provides scoped log relay, durable sources, explicit stable notes and a native Hermes provider; source archiving and fact validation remain separate steps.
 
 ## Build and test
 

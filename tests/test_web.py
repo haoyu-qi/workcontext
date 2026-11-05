@@ -8,6 +8,95 @@ import test_p2
 from test_p1 import port,wait
 ROOT=Path(__file__).resolve().parents[1]
 class WebConsole(unittest.TestCase):
+    def test_local_sources_are_read_only_and_scoped(self):
+        import sqlite3
+        from workcontext.web_sources import LocalSources
+        from workcontext.service import Rejected
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);database=root/'outbox.sqlite';credential=root/'token.json'
+            credential.write_text(json.dumps({'token':'local-reader','expires_at':'2099-01-01T00:00:00Z'}))
+            with sqlite3.connect(database) as db:
+                db.execute('CREATE TABLE outbox (id TEXT PRIMARY KEY,body TEXT,state TEXT)')
+                for identity,state in [('pending','pending'),('delivered','delivered'),('blocked','blocked')]:
+                    body={'id':identity,'text':'source search text','project':'workcontext','agent':'codex','device':'macbook','metadata':{'source_path':'/original/log'}}
+                    db.execute('INSERT INTO outbox VALUES (?,?,?)',(identity,json.dumps(body),state))
+            config={'database':str(database),'token_file':str(credential)}
+            with self.assertRaises(Rejected):LocalSources(config,'wrong')
+            sources=LocalSources(config,'local-reader')
+            self.assertEqual(sources.stats()['records'],2)
+            self.assertEqual(sources.stats()['queue'],{'pending':1,'delivered':1})
+            self.assertEqual(len(sources.search('workcontext')['matches']),2)
+            self.assertEqual(sources.search("'; DROP TABLE outbox; --")['matches'],[])
+            self.assertEqual(sources.get('pending')['delivery_state'],'pending')
+            with self.assertRaises(Rejected):sources.get('blocked')
+            with sources.db() as db:
+                with self.assertRaises(sqlite3.OperationalError):db.execute('DELETE FROM outbox')
+
+    def test_real_memory_facade(self):
+        from workcontext.long_memory import Store
+        from workcontext.service import digest
+        from urllib.parse import urlencode
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);children=[]
+            token='SYNTHETIC-memory-reader';database=root/'memory.sqlite'
+            store=Store(database)
+            record={'id':'a'*64,'device':'macbook','agent':'codex','session':'session','project':'workcontext','ordinal':'1','text':'Searchable source with <script>markup</script>','occurred':'2026-11-05','metadata':{'path':'/local/source.jsonl'}}
+            record['text']+=' '+chr(0x4e2d)*11900
+            store.ingest([record,dict(record,id='b'*64)]);note=store.remember('Searchable stable note',title='Source-backed note',evidence=[record['id']])
+            memory=root/'memory.json';policy={'role':'reader','enabled':True,'expires_at':'2099-01-01T00:00:00Z','token_hash':digest(token)}
+            memory.write_text(json.dumps({'bind':'127.0.0.1','port':43170,'database':str(database),'clients':{'test':policy}}))
+            webport=port();base='http://127.0.0.1:'+str(webport)
+            credential_file=root/'reader.json';credential_file.write_text(json.dumps({'token':token}))
+            config=root/'web.json';config.write_text(json.dumps({'port':webport,'memory_url':'http://127.0.0.1:43170','origins':[base],'auth':{'database':str(root/'sessions.sqlite'),'credentials':{'memory':str(credential_file)}}}))
+            def req(path,credential=token,body=None,headers=None):
+                h={'Authorization':'Bearer '+credential,**(headers or {})}
+                try:
+                    with urlopen(Request(base+path,headers=h,data=json.dumps(body).encode() if body is not None else None),timeout=5) as response:return response.status,json.loads(response.read())
+                except HTTPError as error:return error.code,json.loads(error.read())
+            try:
+                children.append(subprocess.Popen([sys.executable,'-m','workcontext.memory_service','--config',str(memory)],cwd=ROOT))
+                children.append(subprocess.Popen([sys.executable,'-m','workcontext.web_service','--config',str(config)],cwd=ROOT))
+                wait(lambda:req('/health')[0]==200)
+                self.assertEqual(req('/health')[1]['services'],{'memory':{'available':True}})
+                self.assertEqual(req('/api/memory-stats')[1]['records'],2)
+                self.assertEqual(req('/api/memory-stats','invalid')[0],401)
+                self.assertEqual(len(req('/api/memory-search?'+urlencode({'q':'Searchable'}))[1]['matches']),3)
+                self.assertEqual(req('/api/memory-get?id='+note['id'])[1]['evidence'],json.dumps([record['id']]))
+                self.assertEqual(req('/api/memory-get?id='+record['id'])[1]['metadata'],json.dumps(record['metadata'],sort_keys=True))
+                for path in ['/api/memory-search?q=','/api/memory-search?q=a&q=b','/api/memory-stats?extra=1','/api/memory-get']:
+                    self.assertEqual(req(path)[0],400)
+                self.assertEqual(req('/api/memory-stats',headers={'Origin':'https://bad.invalid'})[0],403)
+                self.assertEqual(req('/api/memory-remember',body={'content':'forbidden'})[0],403)
+                from workcontext.web_auth import Sessions
+                def session_req(path,cookie='',body=None,origin=None):
+                    headers={'Cookie':cookie}
+                    if origin:headers['Origin']=origin
+                    try:
+                        with urlopen(Request(base+path,headers=headers,data=json.dumps(body).encode() if body is not None else None),timeout=5) as response:return response.status,json.load(response),response.headers
+                    except HTTPError as error:return error.code,json.load(error),error.headers
+                sessions=Sessions(config);code=sessions.create_pair()['code']
+                self.assertEqual(session_req('/auth/pair',body={'code':code})[0],403)
+                status,data,headers=session_req('/auth/pair',body={'code':code},origin=base)
+                self.assertEqual(status,200);self.assertNotIn('token',data)
+                cookie=headers['Set-Cookie'].split(';')[0]
+                self.assertIn('HttpOnly',headers['Set-Cookie']);self.assertNotIn('Secure',headers['Set-Cookie'])
+                self.assertEqual(session_req('/auth/pair',body={'code':code},origin=base)[0],401)
+                self.assertEqual(session_req('/auth/session',cookie)[1]['services'],['memory'])
+                self.assertEqual(session_req('/api/memory-stats',cookie)[1]['records'],2)
+                self.assertEqual(session_req('/api/inventory',cookie)[0],403)
+                self.assertEqual(session_req('/api/handoff',cookie,body={})[0],403)
+                self.assertEqual(session_req('/auth/logout',cookie,body={},origin='https://bad.invalid')[0],403)
+                self.assertEqual(session_req('/auth/logout',cookie,body={},origin=base)[0],200)
+                self.assertEqual(session_req('/api/memory-stats',cookie)[0],401)
+                # Policy revocation is still checked by the upstream for cookie sessions.
+                code=sessions.create_pair()['code']
+                cookie=session_req('/auth/pair',body={'code':code},origin=base)[2]['Set-Cookie'].split(';')[0]
+                policy['enabled']=False;memory.write_text(json.dumps({'bind':'127.0.0.1','port':43170,'database':str(database),'clients':{'test':policy}}))
+                self.assertEqual(req('/api/memory-stats')[0],401)
+                self.assertEqual(session_req('/api/memory-stats',cookie)[0],401)
+            finally:
+                for child in reversed(children):child.terminate();child.wait(timeout=10)
+
     def test_console_policy_and_origin(self):
         fixture=test_p2.P2Engine('runTest');fixture.setUp();children=[]
         try:

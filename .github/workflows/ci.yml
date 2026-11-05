@@ -25,3 +25,11 @@ jobs:
       - run: python -m unittest discover -s tests -p test_runtime.py -v
       - run: python -m unittest discover -s tests -p test_execution_core.py -v
       - run: python -m unittest discover -s tests -p test_execution_worker.py -v
+      - run: python -m unittest discover -s tests -p test_long_memory.py -v
+      - run: python -m unittest discover -s tests -p test_credentials.py -v
+      - run: python -m unittest discover -s tests -p test_web_auth.py -v
+      - run: python -m unittest discover -s tests -p test_web_sessions_http.py -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --test tests/test_web_token.mjs
