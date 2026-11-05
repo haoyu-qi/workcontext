@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "workcontext-services"
-version = "0.3.0"
+version = "0.4.0"
 description = "Agent context, capability-based execution, local log adapters and controlled skill sync"
 requires-python = ">=3.9"
 dependencies = []

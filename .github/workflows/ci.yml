@@ -25,3 +25,4 @@ jobs:
       - run: python -m unittest discover -s tests -p test_runtime.py -v
       - run: python -m unittest discover -s tests -p test_execution_core.py -v
       - run: python -m unittest discover -s tests -p test_execution_worker.py -v
+      - run: python -m unittest discover -s tests -p test_long_memory.py -v

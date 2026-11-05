@@ -1,0 +1,4 @@
+name: workcontext-memory
+version: 0.4.0
+kind: exclusive
+description: "Private WorkContext long-term memory with automatic turn capture and cited recall."

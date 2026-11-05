@@ -50,7 +50,7 @@ def eligible(root,format):
     if not root.exists():return []
     return sorted(p for p in root.rglob('*') if p.is_file() and not p.is_symlink() and any(str(p).endswith(x) for x in ['.jsonl','.jsonl.zstd','.jsonl.zst']))
 
-def records(path,format):
+def records(path,format,skip_oversized=False):
     if format=='hermes-sqlite':
         db=sqlite3.connect(path.resolve().as_uri()+'?mode=ro',uri=True);db.row_factory=sqlite3.Row
         try:
@@ -63,7 +63,11 @@ def records(path,format):
     else:
         with lines(path) as f:
             for number,line in enumerate(f,1):
-                if len(line)>1048576:raise ValueError('record_exceeds_limit')
+                if len(line)>1048576:
+                    if skip_oversized:
+                        yield number,{'type':'workcontext_omitted_record','text':'Source record content omitted: record exceeds 1 MiB limit.'}
+                        continue
+                    raise ValueError('record_exceeds_limit')
                 if line.strip():yield number,json.loads(line)
 
 def collect(config,include_content=False,max_records=None):

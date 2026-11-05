@@ -5,7 +5,7 @@ Roles: MacBook gathers local Agent work records; Mini provides task context, coo
 ## Install and check
 
 ```sh
-python -m pip install ./workcontext_services-0.3.0-py3-none-any.whl
+python -m pip install ./workcontext_services-0.4.0-py3-none-any.whl
 workcontext selfcheck
 workcontext --help
 ```
@@ -19,6 +19,9 @@ workcontext serve receiver --config state/receiver.json
 workcontext serve context --config state/context.json
 workcontext serve execution --config state/execution.json
 workcontext serve web --config state/web.json
+workcontext serve memory --config state/memory.json
+workcontext relay --config state/relay.json
+workcontext mcp memory --config state/memory-client.json
 workcontext worker --config state/worker.json
 workcontext mcp context --config state/context-mcp.json
 workcontext mcp execution --config state/execution-mcp.json
@@ -46,7 +49,7 @@ workcontext logs watch --config config-examples/log-sources.json --interval 30
 
 Adapters cover dsh JSONL/Zstandard, Codex JSONL/Zstandard, Claude Code JSONL, and read-only Hermes `state.db` messages. Source paths are explicit. Collection is local-only; the command does not upload records to GitHub, Mini, or a model provider. Default storage contains normalized event metadata; `--include-content` opts into scrubbed source content. Reasoning fields and recognized credential fields are removed, but pattern filtering is not a guarantee that arbitrary personal information is absent.
 
-Changed files are rescanned with logical event deduplication; unchanged files are skipped. Compressed snapshots may require full decompression. Unsupported/corrupt inputs are reported. `--max-records N` provides a bounded local trial. Archive-to-Mini ingestion and automatic long-term memory consolidation are separate integration work, not implied by a successful local collection.
+Changed files are rescanned with logical event deduplication; unchanged files are skipped. Compressed snapshots may require full decompression. Unsupported/corrupt inputs are reported. `--max-records N` provides a bounded local trial. The independent memory Relay can upload approved work records to Mini with durable acknowledgements. Native Hermes recall/capture and explicit stable notes are described in [long-term memory](LONG-TERM-MEMORY.md); a successful local collection alone does not prove delivery or fact validation.
 
 ## Shared skill synchronization
 
