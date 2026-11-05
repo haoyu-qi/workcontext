@@ -1,0 +1,9 @@
+{
+  "database": "state/source-records.sqlite",
+  "sources": [
+    {"agent": "dsh", "path": "~/.dsh/sessions", "format": "jsonl"},
+    {"agent": "codex", "path": "~/.codex/sessions", "format": "jsonl"},
+    {"agent": "claude_code", "path": "~/.claude/projects", "format": "jsonl"},
+    {"agent": "hermes", "path": "~/.hermes/state.db", "format": "hermes-sqlite"}
+  ]
+}

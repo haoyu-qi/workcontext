@@ -1,0 +1,13 @@
+BEGIN IMMEDIATE;
+CREATE TABLE projects (project_id TEXT PRIMARY KEY, name TEXT NOT NULL);
+CREATE TABLE repository_aliases (alias TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects);
+CREATE TABLE mapping_aliases (alias TEXT PRIMARY KEY, project_id TEXT NOT NULL REFERENCES projects);
+CREATE TABLE tasks (project_id TEXT NOT NULL, task_id TEXT NOT NULL, PRIMARY KEY(project_id,task_id));
+CREATE TABLE threads (project_id TEXT NOT NULL, task_id TEXT NOT NULL, thread_id TEXT NOT NULL, PRIMARY KEY(project_id,task_id,thread_id));
+CREATE TABLE sessions (session_key TEXT PRIMARY KEY, device_id TEXT NOT NULL, agent TEXT NOT NULL, session_id TEXT NOT NULL);
+CREATE TABLE work_events (event_id TEXT PRIMARY KEY, source_seq INTEGER UNIQUE NOT NULL, project_id TEXT, task_id TEXT, thread_id TEXT, session_key TEXT NOT NULL REFERENCES sessions, resolution TEXT NOT NULL, imported_at TEXT NOT NULL, envelope TEXT NOT NULL);
+CREATE INDEX work_events_project_task ON work_events(project_id,task_id,source_seq);
+CREATE TABLE facts (event_id TEXT NOT NULL REFERENCES work_events ON DELETE CASCADE, ordinal INTEGER NOT NULL, kind TEXT NOT NULL, fact_key TEXT NOT NULL, state TEXT NOT NULL, text TEXT NOT NULL, PRIMARY KEY(event_id,ordinal));
+CREATE TABLE sync_state (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+PRAGMA user_version=1;
+COMMIT;

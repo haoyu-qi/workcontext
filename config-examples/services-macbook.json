@@ -1,0 +1,7 @@
+{
+  "log_directory": "logs",
+  "services": [
+    {"name": "worker", "argv": ["@python", "-m", "workcontext", "worker", "--config", "state/worker.json"]},
+    {"name": "local-source-archive", "argv": ["@python", "-m", "workcontext", "logs", "watch", "--config", "log-sources.json"]}
+  ]
+}

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=58", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "workcontext-services"
+version = "0.3.0"
+description = "Agent context, capability-based execution, local log adapters and controlled skill sync"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.scripts]
+workcontext = "workcontext.__main__:main"
+
+[tool.setuptools.packages.find]
+include = ["workcontext*"]
+namespaces = true
+
+[tool.setuptools.package-data]
+workcontext = ["web/*.html", "web/*.css", "web/*.js", "web/*.mjs", "migrations/p2/*.sql"]

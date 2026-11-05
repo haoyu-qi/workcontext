@@ -1,0 +1,12 @@
+BEGIN IMMEDIATE;
+DROP TABLE facts;
+DROP TABLE work_events;
+DROP TABLE sessions;
+DROP TABLE threads;
+DROP TABLE tasks;
+DROP TABLE repository_aliases;
+DROP TABLE mapping_aliases;
+DROP TABLE projects;
+DROP TABLE sync_state;
+PRAGMA user_version=0;
+COMMIT;

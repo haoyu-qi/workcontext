@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WorkContext P1 synthetic event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "device_id",
+    "session_id",
+    "source_event_id",
+    "grant_id",
+    "policy_version",
+    "schema_version",
+    "event_id",
+    "agent",
+    "event_type",
+    "occurred_at",
+    "classification",
+    "content"
+  ],
+  "properties": {
+    "device_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]{1,96}$"
+    },
+    "session_id": {
+      "type": "string",
+      "pattern": "^p1-[A-Za-z0-9-]{1,93}$"
+    },
+    "source_event_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]{1,96}$"
+    },
+    "grant_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]{1,96}$"
+    },
+    "policy_version": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9-]{1,96}$"
+    },
+    "schema_version": {
+      "const": "workcontext.event.v1"
+    },
+    "event_id": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "agent": {
+      "enum": [
+        "claude_code",
+        "codex_cli"
+      ]
+    },
+    "event_type": {
+      "enum": [
+        "SessionStart",
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PostToolUse",
+        "Stop",
+        "SessionEnd"
+      ]
+    },
+    "occurred_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "classification": {
+      "const": "synthetic"
+    },
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "summary"
+      ],
+      "properties": {
+        "summary": {
+          "const": "SYNTHETIC P1 fixture"
+        }
+      }
+    }
+  },
+  "$comment": "Runtime additionally verifies SHA-256 identity, grant/device binding, timezone and 7-day timestamp window."
+}

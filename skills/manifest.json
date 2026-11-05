@@ -1,0 +1,16 @@
+{
+  "schema": "workcontext.skills.v1",
+  "skills": [
+    {
+      "name": "workcontext-operations",
+      "platforms": [
+        "macos",
+        "windows",
+        "linux"
+      ],
+      "files": {
+        "SKILL.md": "75b2ef9b8f1bb5fd639980710e301ac9d94a544007f6895e5f3315402ca60e6a"
+      }
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "log_directory": "logs",
+  "services": [
+    {"name": "receiver", "argv": ["@python", "-m", "workcontext", "serve", "receiver", "--config", "state/receiver.json"]},
+    {"name": "context", "depends_on": ["receiver"], "argv": ["@python", "-m", "workcontext", "serve", "context", "--config", "state/context.json"]},
+    {"name": "execution", "argv": ["@python", "-m", "workcontext", "serve", "execution", "--config", "state/execution.json"]},
+    {"name": "worker", "depends_on": ["execution"], "argv": ["@python", "-m", "workcontext", "worker", "--config", "state/worker.json"]},
+    {"name": "web", "depends_on": ["context", "execution"], "argv": ["@python", "-m", "workcontext", "serve", "web", "--config", "state/web.json"]}
+  ]
+}
