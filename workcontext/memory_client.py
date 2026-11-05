@@ -2,13 +2,24 @@
 import argparse,json,sys
 from urllib.parse import urlencode,urlsplit
 from urllib.request import Request,build_opener,ProxyHandler
+from urllib.error import HTTPError,URLError
 from .service import load,canonical,NoRedirect
 
 def api(config,path,body=None):
-    c=load(config) if not isinstance(config,dict) else config;url=c['url'].rstrip('/')+path;u=urlsplit(url)
-    if u.username or u.password or u.fragment or (u.scheme!='https' and not(u.scheme=='http' and u.hostname=='127.0.0.1')):raise ValueError('unsafe_destination')
-    req=Request(url,headers={'Authorization':'Bearer '+load(c['token_file'])['token'],'Content-Type':'application/json'},data=canonical(body).encode() if body is not None else None)
-    with build_opener(ProxyHandler({}),NoRedirect()).open(req,timeout=15) as r:return json.loads(r.read(2097152))
+    c=load(config) if not isinstance(config,dict) else config
+    bases=list(dict.fromkeys([c['url']]+c.get('fallback_urls',[])))
+    if not 1<=len(bases)<=3:raise ValueError('too_many_destinations')
+    for base in bases:
+        u=urlsplit(base)
+        if u.username or u.password or u.fragment or u.query or (u.scheme!='https' and not(u.scheme=='http' and u.hostname=='127.0.0.1')):raise ValueError('unsafe_destination')
+    headers={'Authorization':'Bearer '+load(c['token_file'])['token'],'Content-Type':'application/json'}
+    for index,base in enumerate(bases):
+        req=Request(base.rstrip('/')+path,headers=headers,data=canonical(body).encode() if body is not None else None)
+        try:
+            with build_opener(ProxyHandler({}),NoRedirect()).open(req,timeout=15) as r:return json.loads(r.read(2097152))
+        except HTTPError:raise
+        except (URLError,OSError):
+            if index==len(bases)-1:raise
 
 TOOLS=[{'name':name,'description':desc,'inputSchema':{'type':'object','properties':props,'required':required,'additionalProperties':False},'annotations':{'readOnlyHint':readonly,'destructiveHint':False}} for name,desc,props,required,readonly in [
  ('workcontext_memory.search','Search Mini durable memories and cited work records.',{'query':{'type':'string'}},['query'],True),

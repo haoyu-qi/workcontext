@@ -37,7 +37,12 @@ class Memory(unittest.TestCase):
    client={'url':base,'token_file':str(ownerfile)};readonly={'url':base,'token_file':str(readerfile)};relay={'url':base,'token_file':str(token),'device':'macbook','outbox':str(root/'outbox.sqlite'),'allowed_roots':[str(workspace)],'sources':[{'agent':'codex','path':str(logs)}]}
    child=subprocess.Popen([sys.executable,'-m','workcontext.memory_service','--config',str(config)],cwd=ROOT)
    try:
-    wait(lambda:api(client,'/health')['persistent']);self.assertEqual(scan(relay)['queued'],1);self.assertEqual(upload(relay)['delivered'],1);self.assertEqual(upload(relay)['delivered'],0)
+    wait(lambda:api(client,'/health')['persistent'])
+    dead=port()
+    while dead==cfg['port']:dead=port()
+    self.assertEqual(api({**client,'url':'http://127.0.0.1:'+str(dead),'fallback_urls':[base]},'/stats')['records'],0)
+    with self.assertRaises(ValueError):api({**client,'fallback_urls':['http://example.invalid']},'/stats')
+    self.assertEqual(scan(relay)['queued'],1);self.assertEqual(upload(relay)['delivered'],1);self.assertEqual(upload(relay)['delivered'],0)
     hits=api(client,'/memory/search?q=SQLite')['matches'];self.assertEqual(hits[0]['agent'],'codex');self.assertEqual(api(client,'/stats')['records'],1)
     with self.assertRaises(HTTPError):api(readonly,'/memory/remember',{'content':'not allowed'})
     with closing(connect(relay)) as db:db.execute("UPDATE outbox SET state='pending'");db.commit()

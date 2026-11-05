@@ -24,4 +24,6 @@ Install `integrations/hermes/workcontext-memory` into the intended Hermes profil
 
 MacBook Relay configuration includes `url`, `token_file`, `device`, `outbox`, `allowed_roots` and explicit `sources` with `agent`, `path` and optional `format`. Use canonical absolute work-directory roots; Hermes SQLite sources use `format: hermes-sqlite`. Configure a private LaunchAgent or equivalent supervisor for continuous collection. Health records distinguish queued, delivered and retrying states.
 
+Clients may specify up to two `fallback_urls` for network failures. An authenticated SSH local forward bound to `127.0.0.1` can provide an alternate encrypted path to Mini's loopback API. Verify Mini's host key, retain bearer authentication and supervise the tunnel. HTTP is accepted only on IPv4 loopback; authentication and policy failures are returned without trying another endpoint.
+
 Before claiming success, check a fresh Mini Hermes session can retrieve a fact saved in an earlier session, verify a MacBook source record is committed on Mini, and confirm retries do not duplicate it. Preserve the evidence locally. Keep personalized SOUL, native memory snapshots, database files, credentials and deployment reports out of public source bundles.
