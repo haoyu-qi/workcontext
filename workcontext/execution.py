@@ -158,6 +158,15 @@ class Scheduler:
                     return {'durable':True,'duplicate':False}
             raise Rejected('route_denied')
 
+class LoopbackServer(ThreadingHTTPServer):
+    # HTTPServer.server_bind otherwise performs a reverse-DNS lookup even for
+    # 127.0.0.1, which can stall startup on hosts with an unavailable resolver.
+    def server_bind(self):
+        from socketserver import TCPServer
+        TCPServer.server_bind(self)
+        self.server_name='localhost'
+        self.server_port=self.server_address[1]
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self,*_):pass
     def reply(self,code,body):
@@ -189,7 +198,7 @@ def serve(config):
     c=load(config)
     if c['bind']!='127.0.0.1':raise ValueError('loopback_only')
     with database(c['database']):pass
-    s=ThreadingHTTPServer((c['bind'],c['port']),Handler);s.daemon_threads=True;s.config=config
+    s=LoopbackServer((c['bind'],c['port']),Handler);s.daemon_threads=True;s.config=config
     def stop(*_):threading.Thread(target=s.shutdown,daemon=True).start()
     signal.signal(signal.SIGTERM,stop);signal.signal(signal.SIGINT,stop)
     try:s.serve_forever(.2)

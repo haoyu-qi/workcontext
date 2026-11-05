@@ -6,8 +6,16 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from workcontext.execution_worker import revision,step,host_os
 from workcontext.service import http,digest,canonical
 from test_p1 import port,wait
+from unittest.mock import patch
+from workcontext.execution import LoopbackServer,Handler
 ROOT=Path(__file__).resolve().parents[1]
 class Worker(unittest.TestCase):
+    def test_loopback_startup_needs_no_reverse_dns(self):
+        with patch('socket.getfqdn',side_effect=AssertionError('reverse DNS must not be required')):
+            server=LoopbackServer(('127.0.0.1',0),Handler)
+            try:self.assertEqual(server.server_name,'localhost');self.assertGreater(server.server_port,0)
+            finally:server.server_close()
+
     def test_subprocess_execution_and_outbox(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);workspace=root/'project';workspace.mkdir();script=workspace/'check.py';counter=workspace/'counter'
